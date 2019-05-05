@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox prefWidth="200" styleClass="menu-bar" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <HBox styleClass="menu-item">
+         <children>
+            <Label fx:id="carregarArquivo" prefHeight="40"  text="Carregar arquivo" textAlignment="CENTER" />
+         </children>
+      </HBox>
+      <HBox styleClass="menu-item">
+         <children>
+            <Label fx:id="novoElemento" prefHeight="40" text="Novo" textAlignment="CENTER" />
+         </children>
+      </HBox>
+      <HBox styleClass="menu-item">
+         <children>
+            <Label fx:id="listarElementos" prefHeight="40" text="Listar" textAlignment="CENTER" />
+         </children>
+      </HBox>
+   </children>
+</VBox>

@@ -1,0 +1,9 @@
+.menu-bar {
+    -fx-border-color: #eee;
+}
+
+.menu-bar .menu-item {
+    -fx-border-color: #eee;
+    -fx-cursor: hand;
+    -fx-border-width : 0 0 1 0;
+}
