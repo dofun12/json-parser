@@ -6,7 +6,7 @@ package sample;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "dateElement")
+@Table(name = "DateElement")
 public class DateElement {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -20,6 +20,9 @@ public class DateElement {
 
     @Column
     private String status;
+
+    @Transient
+    private Boolean selected;
 
     public DateElement() {
 
@@ -61,5 +64,13 @@ public class DateElement {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public Boolean getSelected() {
+        return selected;
+    }
+
+    public void setSelected(Boolean selected) {
+        this.selected = selected;
     }
 }

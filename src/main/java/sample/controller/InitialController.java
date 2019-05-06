@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -17,6 +18,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -31,7 +33,10 @@ import sample.Activitys;
 import sample.DateElement;
 import sample.Main;
 import sample.ProgressDialog;
+import sample.interfaces.CustomCheckBoxFactory;
+import sample.interfaces.CustomEvents;
 
+import javax.persistence.Table;
 import java.io.File;
 import java.net.URL;
 import java.text.ParseException;
@@ -42,7 +47,7 @@ import java.util.*;
 
 import static javafx.scene.input.KeyCode.*;
 
-public class InitialController extends DefaultController {
+public class InitialController extends DefaultController implements CustomEvents {
     @FXML
     Label carregarArquivo;
 
@@ -66,6 +71,9 @@ public class InitialController extends DefaultController {
     TableView<DateElement> tableContainer;
 
     @FXML
+    TableColumn<DateElement, Boolean> colSelected;
+
+    @FXML
     TableColumn<DateElement, String> colName;
 
     @FXML
@@ -74,49 +82,19 @@ public class InitialController extends DefaultController {
     @FXML
     TableColumn<DateElement, String> colStatus;
 
+    private Map<Integer, Boolean> selected = new HashMap<>();
+
     final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy");
     private List<DateElement> elements;
     private DateElement selectedElement = null;
 
     private static List<KeyCode> ignoreKeyCodes;
 
-    @Override
-    public void onStart() {
-        ignoreKeyCodes = new ArrayList<>();
-        Collections.addAll(ignoreKeyCodes, new KeyCode[]{F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12});
+    private void initTable() {
+        CustomCheckBoxFactory checkBoxFactory = new CustomCheckBoxFactory(this);
 
-        System.out.println("Iniciado");
-        primaryStage.setTitle("OPA");
-        elements = new ArrayList<>();
-
-
-        btnSalvar.setOnAction(event -> {
-            Session session = Main.getLocalDB();
-
-            session.getTransaction().begin();
-            if (selectedElement == null) {
-                session.persist(new DateElement(nameTxt.getText(), dateTxt.getText(), statusTxt.getText()));
-            } else {
-                selectedElement.setDate(dateTxt.getText());
-                selectedElement.setName(nameTxt.getText());
-                selectedElement.setStatus(statusTxt.getText());
-                session.update(selectedElement);
-            }
-            session.getTransaction().commit();
-            session.close();
-            updateList();
-        });
-
-        novoElemento.setOnMouseClicked(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                selectedElement = null;
-                dateTxt.setText(null);
-                nameTxt.setText(null);
-                statusTxt.setText(null);
-            }
-        });
-
+        colSelected.setCellValueFactory(new PropertyValueFactory<>("selected"));
+        colSelected.setCellFactory(checkBoxFactory::checkBoxFactory);
         colName.setCellValueFactory(new PropertyValueFactory<>("name"));
         colDate.setCellValueFactory(new PropertyValueFactory<>("date"));
         colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
@@ -174,9 +152,45 @@ public class InitialController extends DefaultController {
             }
         });
 
-        carregarArquivo.setOnMouseClicked(new EventHandler<MouseEvent>()
 
-        {
+        tableContainer.getItems().forEach(dateElement -> {
+            dateElement.setSelected(true);
+            return;
+        });
+        tableContainer.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<DateElement>() {
+            @Override
+            public void changed(ObservableValue<? extends DateElement> observable, DateElement
+                    oldValue, DateElement newValue) {
+                if (newValue != null) {
+                    selectedElement = newValue;
+                    nameTxt.setText(newValue.getName());
+                    dateTxt.setText(newValue.getDate());
+                    statusTxt.setText(newValue.getStatus());
+
+                    if (newValue.getSelected() == null) {
+                        observable.getValue().setSelected(true);
+                    } else {
+                        if (!newValue.getSelected()) {
+                            observable.getValue().setSelected(true);
+                        } else {
+                            observable.getValue().setSelected(false);
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onStart() {
+        ignoreKeyCodes = new ArrayList<>();
+        Collections.addAll(ignoreKeyCodes, new KeyCode[]{F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12});
+        initTable();
+        System.out.println("Iniciado");
+        primaryStage.setTitle("OPA");
+        elements = new ArrayList<>();
+
+        carregarArquivo.setOnMouseClicked(new EventHandler<MouseEvent>(){
             @Override
             public void handle(MouseEvent event) {
                 carregarArquivo();
@@ -191,22 +205,33 @@ public class InitialController extends DefaultController {
             }
         });
         dateField(dateTxt);
-        tableContainer.getSelectionModel().
 
-                selectedItemProperty().
+        btnSalvar.setOnAction(event -> {
+            Session session = Main.getLocalDB();
 
-                addListener(new ChangeListener<DateElement>() {
-                    @Override
-                    public void changed(ObservableValue<? extends DateElement> observable, DateElement
-                            oldValue, DateElement newValue) {
-                        if (newValue != null) {
-                            selectedElement = newValue;
-                            nameTxt.setText(newValue.getName());
-                            dateTxt.setText(newValue.getDate());
-                            statusTxt.setText(newValue.getStatus());
-                        }
-                    }
-                });
+            session.getTransaction().begin();
+            if (selectedElement == null) {
+                session.persist(new DateElement(nameTxt.getText(), dateTxt.getText(), statusTxt.getText()));
+            } else {
+                selectedElement.setDate(dateTxt.getText());
+                selectedElement.setName(nameTxt.getText());
+                selectedElement.setStatus(statusTxt.getText());
+                session.update(selectedElement);
+            }
+            session.getTransaction().commit();
+            session.close();
+            updateList();
+        });
+
+        novoElemento.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                selectedElement = null;
+                dateTxt.setText(null);
+                nameTxt.setText(null);
+                statusTxt.setText(null);
+            }
+        });
 
 
         updateList();
@@ -214,6 +239,10 @@ public class InitialController extends DefaultController {
 
     }
 
+
+    public void onSelection(Integer index, ActionEvent event) {
+
+    }
 
     public static void dateField(final TextField textField) {
         maxField(textField, 10);
@@ -356,5 +385,14 @@ public class InitialController extends DefaultController {
     @Override
     public double getWidth() {
         return 1200;
+    }
+
+
+    @Override
+    public void onCheckBoxChange(Integer index, ActionEvent event) {
+        DateElement element = tableContainer.getItems().get(index);
+        CheckBox checkBox = (CheckBox) event.getSource();
+        System.out.println("Element: " + element.getName() + " : " + checkBox.isSelected());
+        selected.put(element.getId(), checkBox.isSelected());
     }
 }

@@ -66,10 +66,14 @@
                     </padding>
                 </VBox>
                 <TableView fx:id="tableContainer" prefWidth="500">
+                    <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                    </columnResizePolicy>
                     <columns>
-                        <TableColumn fx:id="colName" prefWidth="200.0" text="name" />
-                        <TableColumn fx:id="colDate" prefWidth="100" text="date" />
-                        <TableColumn fx:id="colStatus" prefWidth="75" text="status" />
+                        <TableColumn minWidth="40" maxWidth="40" fx:id="colSelected"  text="selected" />
+                        <TableColumn fx:id="colName" text="name" />
+                        <TableColumn fx:id="colDate" text="date" />
+                        <TableColumn fx:id="colStatus"  text="status" />
                     </columns>
                 </TableView>
             </children>
