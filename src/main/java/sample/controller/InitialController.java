@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import javafx.application.Platform;
-import javafx.beans.InvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -12,31 +11,23 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.event.EventType;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
-import javafx.util.Callback;
 import org.hibernate.Session;
-import sample.Activitys;
 import sample.DateElement;
 import sample.Main;
 import sample.ProgressDialog;
 import sample.interfaces.CustomCheckBoxFactory;
 import sample.interfaces.CustomEvents;
 
-import javax.persistence.Table;
 import java.io.File;
 import java.net.URL;
 import java.text.ParseException;
@@ -63,6 +54,11 @@ public class InitialController extends DefaultController implements CustomEvents
     @FXML
     TextField statusTxt;
 
+    @FXML
+    Label lblSelecionados;
+
+    @FXML
+    Button btnDeletarSelecionados;
 
     @FXML
     Button btnSalvar;
@@ -113,36 +109,39 @@ public class InitialController extends DefaultController implements CustomEvents
                     ObservableList<DateElement> observableList = getTableView().getItems();
                     if (index >= 0 && index < observableList.size()) {
                         DateElement dateElement = getTableView().getItems().get(index);
-                        String dateStr = dateElement.getDate().trim();
-                        if (dateStr.contains("-")) {
-                            dateStr = dateStr.split("-")[0];
-                        }
-                        try {
-                            Date date = simpleDateFormat.parse(dateStr);
-                            Calendar calDate = Calendar.getInstance();
-                            calDate.setTime(date);
+                        if (dateElement.getDate() != null) {
+                            String dateStr = dateElement.getDate().trim();
 
-                            Calendar calnow = Calendar.getInstance();
-                            long diffMillis = calnow.getTimeInMillis() - calDate.getTimeInMillis();
-
-                            LocalDate ini = LocalDate.of(calnow.get(Calendar.YEAR), calnow.get(Calendar.MONTH), calnow.get(Calendar.DAY_OF_MONTH));
-                            LocalDate end = LocalDate.of(calDate.get(Calendar.YEAR), calDate.get(Calendar.MONTH), calDate.get(Calendar.DAY_OF_MONTH));
-
-
-                            int days = Period.between(ini, end).getDays();
-                            if (days < 0) {
-                                setText("ATRASADO");
-                                setTextFill(Color.RED);
-                            } else if (days > 0 && days <= 7) {
-                                setText("URGENTE");
-                                setTextFill(Color.ORANGE);
-                            } else {
-                                setText("PENDENTE");
-                                setTextFill(Color.BLUE);
+                            if (dateStr.contains("-")) {
+                                dateStr = dateStr.split("-")[0];
                             }
+                            try {
+                                Date date = simpleDateFormat.parse(dateStr);
+                                Calendar calDate = Calendar.getInstance();
+                                calDate.setTime(date);
 
-                        } catch (ParseException e) {
-                            e.printStackTrace();
+                                Calendar calnow = Calendar.getInstance();
+                                long diffMillis = calnow.getTimeInMillis() - calDate.getTimeInMillis();
+
+                                LocalDate ini = LocalDate.of(calnow.get(Calendar.YEAR), calnow.get(Calendar.MONTH), calnow.get(Calendar.DAY_OF_MONTH));
+                                LocalDate end = LocalDate.of(calDate.get(Calendar.YEAR), calDate.get(Calendar.MONTH), calDate.get(Calendar.DAY_OF_MONTH));
+
+
+                                int days = Period.between(ini, end).getDays();
+                                if (days < 0) {
+                                    setText("ATRASADO");
+                                    setTextFill(Color.RED);
+                                } else if (days > 0 && days <= 7) {
+                                    setText("URGENTE");
+                                    setTextFill(Color.ORANGE);
+                                } else {
+                                    setText("PENDENTE");
+                                    setTextFill(Color.BLUE);
+                                }
+
+                            } catch (ParseException e) {
+                                e.printStackTrace();
+                            }
                         }
 
                     }
@@ -184,13 +183,20 @@ public class InitialController extends DefaultController implements CustomEvents
     @Override
     public void onStart() {
         ignoreKeyCodes = new ArrayList<>();
+        lblSelecionados.setText("");
         Collections.addAll(ignoreKeyCodes, new KeyCode[]{F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12});
         initTable();
         System.out.println("Iniciado");
         primaryStage.setTitle("OPA");
         elements = new ArrayList<>();
 
-        carregarArquivo.setOnMouseClicked(new EventHandler<MouseEvent>(){
+        btnDeletarSelecionados.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                deletarSelecionados();
+            }
+        });
+        carregarArquivo.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
                 carregarArquivo();
@@ -226,10 +232,7 @@ public class InitialController extends DefaultController implements CustomEvents
         novoElemento.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
-                selectedElement = null;
-                dateTxt.setText(null);
-                nameTxt.setText(null);
-                statusTxt.setText(null);
+                cleanFields();
             }
         });
 
@@ -237,6 +240,13 @@ public class InitialController extends DefaultController implements CustomEvents
         updateList();
 
 
+    }
+
+    private void cleanFields() {
+        selectedElement = null;
+        dateTxt.setText(null);
+        nameTxt.setText(null);
+        statusTxt.setText(null);
     }
 
 
@@ -340,6 +350,7 @@ public class InitialController extends DefaultController implements CustomEvents
 
     public void updateList() {
         final ProgressDialog dialog = new ProgressDialog();
+        cleanFields();
         dialog.show();
         Task<Void> task = new Task<Void>() {
 
@@ -394,5 +405,31 @@ public class InitialController extends DefaultController implements CustomEvents
         CheckBox checkBox = (CheckBox) event.getSource();
         System.out.println("Element: " + element.getName() + " : " + checkBox.isSelected());
         selected.put(element.getId(), checkBox.isSelected());
+
+        int total = 0;
+        for (Map.Entry<Integer, Boolean> entry : selected.entrySet()) {
+            if (entry.getValue()) {
+                total++;
+            }
+        }
+        if (total > 0) {
+            btnDeletarSelecionados.setVisible(true);
+            lblSelecionados.setText(total + " itens selecionados");
+        }
+
+    }
+
+    public void deletarSelecionados() {
+        Session session = Main.getLocalDB();
+        session.getTransaction().begin();
+        for (Map.Entry<Integer, Boolean> entry : selected.entrySet()) {
+            session.delete(session.find(DateElement.class, entry.getKey()));
+        }
+        session.getTransaction().commit();
+        selected = new HashMap<>();
+        lblSelecionados.setText("");
+        btnDeletarSelecionados.setVisible(false);
+        updateList();
+
     }
 }
