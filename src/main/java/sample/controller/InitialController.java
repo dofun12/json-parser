@@ -21,6 +21,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
+import javafx.util.converter.LocalDateStringConverter;
 import org.hibernate.Session;
 import sample.DateElement;
 import sample.Main;
@@ -34,6 +35,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.Period;
+import java.time.chrono.Chronology;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.Temporal;
 import java.util.*;
 
 import static javafx.scene.input.KeyCode.*;
@@ -49,7 +53,7 @@ public class InitialController extends DefaultController implements CustomEvents
     TextField nameTxt;
 
     @FXML
-    TextField dateTxt;
+    DatePicker dateTxt;
 
     @FXML
     TextField statusTxt;
@@ -163,7 +167,8 @@ public class InitialController extends DefaultController implements CustomEvents
                 if (newValue != null) {
                     selectedElement = newValue;
                     nameTxt.setText(newValue.getName());
-                    dateTxt.setText(newValue.getDate());
+                    LocalDateStringConverter stringConverter = new LocalDateStringConverter();
+                    dateTxt.setValue(stringConverter.fromString(newValue.getDate()));
                     statusTxt.setText(newValue.getStatus());
 
                     if (newValue.getSelected() == null) {
@@ -210,22 +215,23 @@ public class InitialController extends DefaultController implements CustomEvents
                 }
             }
         });
-        dateField(dateTxt);
 
         btnSalvar.setOnAction(event -> {
             Session session = Main.getLocalDB();
-
-            session.getTransaction().begin();
-            if (selectedElement == null) {
-                session.persist(new DateElement(nameTxt.getText(), dateTxt.getText(), statusTxt.getText()));
-            } else {
-                selectedElement.setDate(dateTxt.getText());
-                selectedElement.setName(nameTxt.getText());
-                selectedElement.setStatus(statusTxt.getText());
-                session.update(selectedElement);
+            if(!session.getTransaction().isActive()){
+                session.getTransaction().begin();
+                if (selectedElement == null) {
+                    session.persist(new DateElement(nameTxt.getText(), dateTxt.getValue().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), statusTxt.getText()));
+                } else {
+                    selectedElement.setDate(dateTxt.getValue().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+                    selectedElement.setName(nameTxt.getText());
+                    selectedElement.setStatus(statusTxt.getText());
+                    session.update(selectedElement);
+                }
+                session.getTransaction().commit();
+                session.close();
             }
-            session.getTransaction().commit();
-            session.close();
+
             updateList();
         });
 
@@ -244,7 +250,7 @@ public class InitialController extends DefaultController implements CustomEvents
 
     private void cleanFields() {
         selectedElement = null;
-        dateTxt.setText(null);
+        dateTxt.setValue(null);
         nameTxt.setText(null);
         statusTxt.setText(null);
     }
@@ -415,6 +421,10 @@ public class InitialController extends DefaultController implements CustomEvents
         if (total > 0) {
             btnDeletarSelecionados.setVisible(true);
             lblSelecionados.setText(total + " itens selecionados");
+        }else{
+            selected = new HashMap<>();
+            lblSelecionados.setText("");
+            btnDeletarSelecionados.setVisible(false);
         }
 
     }

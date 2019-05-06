@@ -1,32 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
-
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 <BorderPane xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1">
     <left>
-        <VBox prefWidth="200" styleClass="menu-bar" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1">
+        <VBox prefWidth="200" styleClass="menu-bar" xmlns="http://javafx.com/javafx/8.0.121"
+              xmlns:fx="http://javafx.com/fxml/1">
             <children>
                 <HBox styleClass="menu-item">
                     <children>
-                        <Label fx:id="carregarArquivo" prefHeight="40" text="Carregar arquivo" textAlignment="CENTER" />
+                        <Label fx:id="carregarArquivo" prefHeight="40" text="Carregar arquivo" textAlignment="CENTER"/>
                     </children>
                 </HBox>
                 <HBox styleClass="menu-item">
                     <children>
-                        <Label fx:id="novoElemento" prefHeight="40" text="Novo" textAlignment="CENTER" />
+                        <Label fx:id="novoElemento" prefHeight="40" text="Novo" textAlignment="CENTER"/>
                     </children>
                 </HBox>
                 <HBox styleClass="menu-item">
                     <children>
-                        <Label fx:id="listarElementos" prefHeight="40" text="Listar" textAlignment="CENTER" />
+                        <Label fx:id="listarElementos" prefHeight="40" text="Listar" textAlignment="CENTER"/>
                     </children>
                 </HBox>
             </children>
@@ -39,57 +33,58 @@
                     <children>
                         <HBox prefHeight="30">
                             <children>
-                                <Label prefWidth="150" text="Nome: " />
-                                <TextField fx:id="nameTxt" HBox.hgrow="ALWAYS" />
+                                <Label prefWidth="150" text="Nome: "/>
+                                <TextField fx:id="nameTxt" HBox.hgrow="ALWAYS"/>
                             </children>
                         </HBox>
                         <HBox prefHeight="30">
                             <children>
-                                <Label prefWidth="150" text="Date: " />
-                                <TextField fx:id="dateTxt" HBox.hgrow="ALWAYS" />
+                                <Label prefWidth="150" text="Date: "/>
+                                <DatePicker fx:id="dateTxt" HBox.hgrow="ALWAYS"/>
                             </children>
                         </HBox>
                         <HBox prefHeight="30">
                             <children>
-                                <Label prefWidth="150" text="Status: " />
-                                <TextField fx:id="statusTxt" HBox.hgrow="ALWAYS" />
+                                <Label prefWidth="150" text="Status: "/>
+                                <TextField fx:id="statusTxt" HBox.hgrow="ALWAYS"/>
                             </children>
                         </HBox>
                         <HBox>
                             <children>
-                        <HBox alignment="BOTTOM_LEFT" HBox.hgrow="SOMETIMES">
-                           <children>
-                              <Label prefHeight="25.0" text="Selecionados:  " fx:id="lblSelecionados" />
-                                      <Button fx:id="btnDeletarSelecionados" visible="false" text="Deletar Selecionados" />
-                           </children>
-                        </HBox>
-                        <HBox alignment="BOTTOM_RIGHT" HBox.hgrow="SOMETIMES">
-                           <children>
-                              <Button fx:id="btnSalvar" text="Salvar" />
-                           </children>
-                        </HBox>
+                                <HBox alignment="BOTTOM_LEFT" HBox.hgrow="SOMETIMES">
+                                    <children>
+                                        <Label fx:id="lblSelecionados" prefHeight="25.0" text="Selecionados:  "/>
+                                        <Button fx:id="btnDeletarSelecionados" text="Deletar Selecionados"
+                                                visible="false"/>
+                                    </children>
+                                </HBox>
+                                <HBox alignment="BOTTOM_RIGHT" HBox.hgrow="SOMETIMES">
+                                    <children>
+                                        <Button fx:id="btnSalvar" styleClass="save-icon" text="Salvar"/>
+                                    </children>
+                                </HBox>
                             </children>
                         </HBox>
                     </children>
                     <padding>
-                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
                     </padding>
                 </VBox>
                 <TableView fx:id="tableContainer" prefWidth="500">
                     <columnResizePolicy>
-                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
                     </columnResizePolicy>
                     <columns>
-                        <TableColumn fx:id="colSelected" maxWidth="40" minWidth="40" text="selected" />
-                        <TableColumn fx:id="colName" text="name" />
-                        <TableColumn fx:id="colDate" text="date" />
-                        <TableColumn fx:id="colStatus" text="status" />
+                        <TableColumn fx:id="colSelected" maxWidth="40" minWidth="40" text="selected"/>
+                        <TableColumn fx:id="colName" text="name"/>
+                        <TableColumn fx:id="colDate" text="date"/>
+                        <TableColumn fx:id="colStatus" text="status"/>
                     </columns>
                 </TableView>
             </children>
-         <padding>
-            <Insets bottom="10.0" right="10.0" top="10.0" />
-         </padding>
+            <padding>
+                <Insets bottom="10.0" right="10.0" top="10.0"/>
+            </padding>
         </VBox>
 
     </center>
